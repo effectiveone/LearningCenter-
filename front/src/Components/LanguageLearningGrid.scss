@@ -1,0 +1,37 @@
+.language-learning-grid {
+    .grid {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+  
+    .grid-item {
+      flex: 1;
+      text-align: center;
+  
+      button {
+        display: block;
+        margin: 10px auto;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+  
+        &.selected {
+          background-color: #007bff;
+          color: white;
+        }
+      }
+    }
+  
+    .questions {
+      text-align: center;
+  
+      .question {
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+    }
+  }
+  
