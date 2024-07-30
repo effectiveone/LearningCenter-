@@ -9,41 +9,41 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-import * as common from "@nestjs/common";
-import * as swagger from "@nestjs/swagger";
-import { isRecordNotFoundError } from "../../prisma.util";
-import * as errors from "../../errors";
-import { Request } from "express";
-import { plainToClass } from "class-transformer";
-import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
-import * as nestAccessControl from "nest-access-control";
-import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
-import { FlashcardService } from "../flashcard.service";
-import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
-import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
-import { FlashcardCreateInput } from "./FlashcardCreateInput";
-import { Flashcard } from "./Flashcard";
-import { FlashcardFindManyArgs } from "./FlashcardFindManyArgs";
-import { FlashcardWhereUniqueInput } from "./FlashcardWhereUniqueInput";
-import { FlashcardUpdateInput } from "./FlashcardUpdateInput";
-import { UserProgressFindManyArgs } from "../../userProgress/base/UserProgressFindManyArgs";
-import { UserProgress } from "../../userProgress/base/UserProgress";
-import { UserProgressWhereUniqueInput } from "../../userProgress/base/UserProgressWhereUniqueInput";
+import * as common from '@nestjs/common';
+import * as swagger from '@nestjs/swagger';
+import { isRecordNotFoundError } from '../../prisma.util';
+import * as errors from '../../errors';
+import { Request } from 'express';
+import { plainToClass } from 'class-transformer';
+import { ApiNestedQuery } from '../../decorators/api-nested-query.decorator';
+import * as nestAccessControl from 'nest-access-control';
+import * as defaultAuthGuard from '../../auth/defaultAuth.guard';
+import { FlashcardService } from '../flashcard.service';
+import { AclValidateRequestInterceptor } from '../../interceptors/aclValidateRequest.interceptor';
+import { AclFilterResponseInterceptor } from '../../interceptors/aclFilterResponse.interceptor';
+import { FlashcardCreateInput } from './FlashcardCreateInput';
+import { Flashcard } from './Flashcard';
+import { FlashcardFindManyArgs } from './FlashcardFindManyArgs';
+import { FlashcardWhereUniqueInput } from './FlashcardWhereUniqueInput';
+import { FlashcardUpdateInput } from './FlashcardUpdateInput';
+import { UserProgressFindManyArgs } from '../../userProgress/base/UserProgressFindManyArgs';
+import { UserProgress } from '../../userProgress/base/UserProgress';
+import { UserProgressWhereUniqueInput } from '../../userProgress/base/UserProgressWhereUniqueInput';
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
 export class FlashcardControllerBase {
   constructor(
     protected readonly service: FlashcardService,
-    protected readonly rolesBuilder: nestAccessControl.RolesBuilder
+    protected readonly rolesBuilder: nestAccessControl.RolesBuilder,
   ) {}
   @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
   @swagger.ApiCreatedResponse({ type: Flashcard })
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "create",
-    possession: "any",
+    resource: 'Flashcard',
+    action: 'create',
+    possession: 'any',
   })
   @swagger.ApiForbiddenResponse({
     type: errors.ForbiddenException,
@@ -52,7 +52,7 @@ export class FlashcardControllerBase {
     type: FlashcardCreateInput,
   })
   async createFlashcard(
-    @common.Body() data: FlashcardCreateInput
+    @common.Body() data: FlashcardCreateInput,
   ): Promise<Flashcard> {
     return await this.service.createFlashcard({
       data: {
@@ -109,36 +109,48 @@ export class FlashcardControllerBase {
   @swagger.ApiOkResponse({ type: [Flashcard] })
   @ApiNestedQuery(FlashcardFindManyArgs)
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "read",
-    possession: "any",
+    resource: 'Flashcard',
+    action: 'read',
+    possession: 'any',
   })
   @swagger.ApiForbiddenResponse({
     type: errors.ForbiddenException,
   })
-  async flashcards(@common.Req() request: Request): Promise<Flashcard[]> {
+  async flashcards(
+    @common.Req() request: Request,
+    @common.Query('languageId') languageId?: string,
+    @common.Query('levelId') levelId?: string,
+    @common.Query('categoryId') categoryId?: string,
+  ): Promise<Flashcard[]> {
     const args = plainToClass(FlashcardFindManyArgs, request.query);
+
+    // Dodaj warunki filtrowania
+    const where = {
+      ...(args.where || {}),
+      ...(languageId && { languageId }),
+      ...(levelId && { levelId }),
+      ...(categoryId && { categoryId }),
+    };
+
     return this.service.flashcards({
       ...args,
+      where,
       select: {
         id: true,
         createdAt: true,
         updatedAt: true,
         question: true,
         answer: true,
-
         language: {
           select: {
             id: true,
           },
         },
-
         category: {
           select: {
             id: true,
           },
         },
-
         level: {
           select: {
             id: true,
@@ -149,19 +161,19 @@ export class FlashcardControllerBase {
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)
-  @common.Get("/:id")
+  @common.Get('/:id')
   @swagger.ApiOkResponse({ type: Flashcard })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "read",
-    possession: "own",
+    resource: 'Flashcard',
+    action: 'read',
+    possession: 'own',
   })
   @swagger.ApiForbiddenResponse({
     type: errors.ForbiddenException,
   })
   async flashcard(
-    @common.Param() params: FlashcardWhereUniqueInput
+    @common.Param() params: FlashcardWhereUniqueInput,
   ): Promise<Flashcard | null> {
     const result = await this.service.flashcard({
       where: params,
@@ -193,20 +205,20 @@ export class FlashcardControllerBase {
     });
     if (result === null) {
       throw new errors.NotFoundException(
-        `No resource was found for ${JSON.stringify(params)}`
+        `No resource was found for ${JSON.stringify(params)}`,
       );
     }
     return result;
   }
 
   @common.UseInterceptors(AclValidateRequestInterceptor)
-  @common.Patch("/:id")
+  @common.Patch('/:id')
   @swagger.ApiOkResponse({ type: Flashcard })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "update",
-    possession: "any",
+    resource: 'Flashcard',
+    action: 'update',
+    possession: 'any',
   })
   @swagger.ApiForbiddenResponse({
     type: errors.ForbiddenException,
@@ -216,7 +228,7 @@ export class FlashcardControllerBase {
   })
   async updateFlashcard(
     @common.Param() params: FlashcardWhereUniqueInput,
-    @common.Body() data: FlashcardUpdateInput
+    @common.Body() data: FlashcardUpdateInput,
   ): Promise<Flashcard | null> {
     try {
       return await this.service.updateFlashcard({
@@ -271,26 +283,26 @@ export class FlashcardControllerBase {
     } catch (error) {
       if (isRecordNotFoundError(error)) {
         throw new errors.NotFoundException(
-          `No resource was found for ${JSON.stringify(params)}`
+          `No resource was found for ${JSON.stringify(params)}`,
         );
       }
       throw error;
     }
   }
 
-  @common.Delete("/:id")
+  @common.Delete('/:id')
   @swagger.ApiOkResponse({ type: Flashcard })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "delete",
-    possession: "any",
+    resource: 'Flashcard',
+    action: 'delete',
+    possession: 'any',
   })
   @swagger.ApiForbiddenResponse({
     type: errors.ForbiddenException,
   })
   async deleteFlashcard(
-    @common.Param() params: FlashcardWhereUniqueInput
+    @common.Param() params: FlashcardWhereUniqueInput,
   ): Promise<Flashcard | null> {
     try {
       return await this.service.deleteFlashcard({
@@ -324,7 +336,7 @@ export class FlashcardControllerBase {
     } catch (error) {
       if (isRecordNotFoundError(error)) {
         throw new errors.NotFoundException(
-          `No resource was found for ${JSON.stringify(params)}`
+          `No resource was found for ${JSON.stringify(params)}`,
         );
       }
       throw error;
@@ -332,16 +344,16 @@ export class FlashcardControllerBase {
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)
-  @common.Get("/:id/userProgresses")
+  @common.Get('/:id/userProgresses')
   @ApiNestedQuery(UserProgressFindManyArgs)
   @nestAccessControl.UseRoles({
-    resource: "UserProgress",
-    action: "read",
-    possession: "any",
+    resource: 'UserProgress',
+    action: 'read',
+    possession: 'any',
   })
   async findUserProgresses(
     @common.Req() request: Request,
-    @common.Param() params: FlashcardWhereUniqueInput
+    @common.Param() params: FlashcardWhereUniqueInput,
   ): Promise<UserProgress[]> {
     const query = plainToClass(UserProgressFindManyArgs, request.query);
     const results = await this.service.findUserProgresses(params.id, {
@@ -368,21 +380,21 @@ export class FlashcardControllerBase {
     });
     if (results === null) {
       throw new errors.NotFoundException(
-        `No resource was found for ${JSON.stringify(params)}`
+        `No resource was found for ${JSON.stringify(params)}`,
       );
     }
     return results;
   }
 
-  @common.Post("/:id/userProgresses")
+  @common.Post('/:id/userProgresses')
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "update",
-    possession: "any",
+    resource: 'Flashcard',
+    action: 'update',
+    possession: 'any',
   })
   async connectUserProgresses(
     @common.Param() params: FlashcardWhereUniqueInput,
-    @common.Body() body: UserProgressWhereUniqueInput[]
+    @common.Body() body: UserProgressWhereUniqueInput[],
   ): Promise<void> {
     const data = {
       userProgresses: {
@@ -396,15 +408,15 @@ export class FlashcardControllerBase {
     });
   }
 
-  @common.Patch("/:id/userProgresses")
+  @common.Patch('/:id/userProgresses')
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "update",
-    possession: "any",
+    resource: 'Flashcard',
+    action: 'update',
+    possession: 'any',
   })
   async updateUserProgresses(
     @common.Param() params: FlashcardWhereUniqueInput,
-    @common.Body() body: UserProgressWhereUniqueInput[]
+    @common.Body() body: UserProgressWhereUniqueInput[],
   ): Promise<void> {
     const data = {
       userProgresses: {
@@ -418,15 +430,15 @@ export class FlashcardControllerBase {
     });
   }
 
-  @common.Delete("/:id/userProgresses")
+  @common.Delete('/:id/userProgresses')
   @nestAccessControl.UseRoles({
-    resource: "Flashcard",
-    action: "update",
-    possession: "any",
+    resource: 'Flashcard',
+    action: 'update',
+    possession: 'any',
   })
   async disconnectUserProgresses(
     @common.Param() params: FlashcardWhereUniqueInput,
-    @common.Body() body: UserProgressWhereUniqueInput[]
+    @common.Body() body: UserProgressWhereUniqueInput[],
   ): Promise<void> {
     const data = {
       userProgresses: {

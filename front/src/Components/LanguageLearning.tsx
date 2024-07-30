@@ -19,6 +19,8 @@ const LanguageLearning: React.FC<LanguageLearningGridProps> = ({ data }) => {
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
   const [timer, setTimer] = useState(0);
+  const [completed, setCompleted] = useState(false);
+  const [incorrectAnswers, setIncorrectAnswers] = useState<Question[]>([]);
 
   useEffect(() => {
     if (timer > 0) {
@@ -53,10 +55,11 @@ const LanguageLearning: React.FC<LanguageLearningGridProps> = ({ data }) => {
       setFeedback(
         `Odpowiedź jest niepoprawna. Poprawna odpowiedź to: ${correctAnswer}`,
       );
+      setIncorrectAnswers([...incorrectAnswers, currentQuestion]);
     }
 
     setQuestionsAnswered(questionsAnswered + 1);
-    setTimer(10);
+    setTimer(3);
   };
 
   const toggleMode = () => {
@@ -65,13 +68,62 @@ const LanguageLearning: React.FC<LanguageLearningGridProps> = ({ data }) => {
   };
 
   const nextQuestion = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % data.length);
+    if (questionsAnswered >= data.length) {
+      setCompleted(true);
+    } else {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % data.length);
+      setInputValue('');
+      setFeedback('');
+      setTimer(0);
+    }
+  };
+
+  const resetQuiz = () => {
+    setCurrentIndex(0);
     setInputValue('');
     setFeedback('');
+    setIsAnswerMode(true);
+    setCorrectAnswersCount(0);
+    setQuestionsAnswered(0);
     setTimer(0);
+    setCompleted(false);
+    setIncorrectAnswers([]);
   };
 
   const currentQuestion = data[currentIndex];
+
+  if (data?.length === 0) {
+    return (
+      <div>
+        <p>Nie masz pytań w tej kategorii</p>
+      </div>
+    );
+  }
+
+  if (completed) {
+    return (
+      <div className='language-learning-grid'>
+        <h2>Ukończyłeś quiz!</h2>
+        <p>Poprawne odpowiedzi: {correctAnswersCount}</p>
+        <p>Błędne odpowiedzi: {incorrectAnswers.length}</p>
+        <button onClick={resetQuiz}>Rozpocznij ponownie</button>
+        <button
+          onClick={() => {
+            /* Navigate to UserProgress */
+          }}
+        >
+          Zobacz postępy
+        </button>
+        <button
+          onClick={() => {
+            /* Navigate to UserRevision */
+          }}
+        >
+          Powtórz pytania
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className='language-learning-grid'>

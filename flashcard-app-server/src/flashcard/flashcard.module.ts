@@ -1,9 +1,10 @@
-import { Module, forwardRef } from "@nestjs/common";
-import { AuthModule } from "../auth/auth.module";
-import { FlashcardModuleBase } from "./base/flashcard.module.base";
-import { FlashcardService } from "./flashcard.service";
-import { FlashcardController } from "./flashcard.controller";
-import { FlashcardResolver } from "./flashcard.resolver";
+import { Module, forwardRef } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
+import { FlashcardModuleBase } from './base/flashcard.module.base';
+import { FlashcardService } from './flashcard.service';
+import { FlashcardController } from './flashcard.controller';
+import { FlashcardResolver } from './flashcard.resolver';
+import { FlashcardsSelectedGroupByUser } from './base/FlashcardSelectedGroupByUser';
 
 @Module({
   imports: [FlashcardModuleBase, forwardRef(() => AuthModule)],

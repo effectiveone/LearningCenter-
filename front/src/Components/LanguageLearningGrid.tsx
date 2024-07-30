@@ -18,10 +18,23 @@ const LanguageLearningGrid = () => {
   console.log('questions', questions);
 
   // Funkcja do pobierania danych z API
-  const fetchData = async (endpoint: string) => {
+  // Funkcja do pobierania danych z API
+  const fetchData = async (endpoint: string, params?: any) => {
     try {
       const token = localStorage.getItem('credentials');
-      const response = await axios.get(`${API_URL}/${endpoint}`, {
+      let url = `${API_URL}/${endpoint}`;
+
+      if (params) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          if (value) {
+            queryParams.append(`where[${key}]`, value as string);
+          }
+        });
+        url += `?${queryParams.toString()}`;
+      }
+
+      const response = await axios.get(url, {
         headers: { Authorization: `${token}` },
       });
       return response.data;
@@ -70,16 +83,26 @@ const LanguageLearningGrid = () => {
 
   // Ładowanie pytań, gdy wybrany poziom się zmienia
   useEffect(() => {
-    if (selectedLevel) {
+    if (selectedLanguage && selectedCategory && selectedLevel) {
       const loadQuestions = async () => {
         setLoading(true);
-        const data = await fetchData(`flashcards`);
+        const data = await fetchData('flashcards', {
+          languageId: selectedLanguage,
+          categoryId: selectedCategory,
+          levelId: selectedLevel,
+        });
+        console.log('data', {
+          category: selectedCategory,
+          language: selectedLanguage,
+          level: selectedLevel,
+        });
+
         setQuestions(data);
         setLoading(false);
       };
       loadQuestions();
     }
-  }, [selectedLevel]);
+  }, [selectedLanguage, selectedCategory, selectedLevel]);
 
   return (
     <div className='language-learning-grid'>
