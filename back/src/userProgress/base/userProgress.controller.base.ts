@@ -38,44 +38,48 @@ export class UserProgressControllerBase {
     type: UserProgressCreateInput,
   })
   async createUserProgress(
-    @common.Body() data: UserProgressCreateInput,
+    @Body() data: UserProgressCreateInput,
   ): Promise<UserProgress> {
-    return await this.service.createUserProgress({
+    console.log('Otrzymane dane:', JSON.stringify(data, null, 2));
+
+    // Znajdź użytkownika za pomocą username
+    const user = await this.service.getUserByUsername(data.username);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    console.log('Znaleziony użytkownik:', JSON.stringify(user, null, 2));
+
+    // Wyciągnij szczegóły flashcard
+    const { flashcard } = data;
+    let category = undefined;
+    let level = undefined;
+    let language = undefined;
+    if (flashcard) {
+      const flashcardData = await this.service.getFlashcard(flashcard.id);
+      console.log('Dane fiszki:', JSON.stringify(flashcardData, null, 2));
+      if (flashcardData) {
+        category = flashcardData.category
+          ? { connect: { id: flashcardData.categoryId } }
+          : undefined;
+        level = flashcardData.level
+          ? { connect: { id: flashcardData.levelId } }
+          : undefined;
+        language = flashcardData.language
+          ? { connect: { id: flashcardData.languageId } }
+          : undefined;
+      }
+    }
+
+    const createData = {
       data: {
-        ...data,
-
-        user: data.user
-          ? {
-              connect: data.user,
-            }
-          : undefined,
-
-        flashcard: data.flashcard
-          ? {
-              connect: data.flashcard,
-            }
-          : undefined,
+        correctAnswers: data.correctAnswers,
+        incorrectAnswers: data.incorrectAnswers,
       },
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        correctAnswers: true,
-        incorrectAnswers: true,
+    };
 
-        user: {
-          select: {
-            id: true,
-          },
-        },
+    console.log('Dane do utworzenia:', JSON.stringify(createData, null, 2));
 
-        flashcard: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
+    return await this.service.createUserProgress(createData);
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)

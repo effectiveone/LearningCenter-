@@ -1,6 +1,13 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, Min, Max, IsOptional, ValidateNested } from 'class-validator';
+import {
+  IsInt,
+  Min,
+  Max,
+  IsOptional,
+  ValidateNested,
+  IsString,
+} from 'class-validator';
 import { UserWhereUniqueInput } from '../../user/base/UserWhereUniqueInput';
 import { Type } from 'class-transformer';
 import { FlashcardWhereUniqueInput } from '../../flashcard/base/FlashcardWhereUniqueInput';
@@ -34,16 +41,12 @@ class UserProgressCreateInput {
   incorrectAnswers?: number | null;
 
   @ApiProperty({
-    required: false,
-    type: () => UserWhereUniqueInput,
+    required: true,
+    type: String,
   })
-  @ValidateNested()
-  @Type(() => UserWhereUniqueInput)
-  @IsOptional()
-  @Field(() => UserWhereUniqueInput, {
-    nullable: true,
-  })
-  user?: UserWhereUniqueInput | null;
+  @IsString()
+  @Field(() => String)
+  username: string;
 
   @ApiProperty({
     required: false,

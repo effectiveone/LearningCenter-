@@ -24,7 +24,6 @@ const GET_ALL_DATA = gql`
 
 const Test = () => {
   const { loading, error, data } = useQuery(GET_ALL_DATA);
-  console.log('kupa', data);
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 

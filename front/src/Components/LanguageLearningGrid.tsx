@@ -15,8 +15,6 @@ const LanguageLearningGrid = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  console.log('questions', questions);
-
   // Funkcja do pobierania danych z API
   // Funkcja do pobierania danych z API
   const fetchData = async (endpoint: string, params?: any) => {
@@ -90,11 +88,6 @@ const LanguageLearningGrid = () => {
           languageId: selectedLanguage,
           categoryId: selectedCategory,
           levelId: selectedLevel,
-        });
-        console.log('data', {
-          category: selectedCategory,
-          language: selectedLanguage,
-          level: selectedLevel,
         });
 
         setQuestions(data);

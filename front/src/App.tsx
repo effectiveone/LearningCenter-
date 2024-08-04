@@ -37,7 +37,7 @@ import { jwtAuthProvider } from './auth-provider/ra-auth-jwt';
 
 const App = (): React.ReactElement => {
   const [dataProvider, setDataProvider] = useState<DataProvider | null>(null);
-  console.log('dataProvider', dataProvider);
+
   useEffect(() => {
     buildGraphQLProvider
       .then((provider: any) => {

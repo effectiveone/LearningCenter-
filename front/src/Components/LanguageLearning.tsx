@@ -21,7 +21,7 @@ const LanguageLearning: React.FC<LanguageLearningGridProps> = ({ data }) => {
   const [timer, setTimer] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [incorrectAnswers, setIncorrectAnswers] = useState<Question[]>([]);
-
+  console.log('data', data);
   useEffect(() => {
     if (timer > 0) {
       const countdown = setTimeout(() => setTimer(timer - 1), 1000);
@@ -70,6 +70,7 @@ const LanguageLearning: React.FC<LanguageLearningGridProps> = ({ data }) => {
   const nextQuestion = () => {
     if (questionsAnswered >= data.length) {
       setCompleted(true);
+      sendProgressData();
     } else {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % data.length);
       setInputValue('');
@@ -88,6 +89,42 @@ const LanguageLearning: React.FC<LanguageLearningGridProps> = ({ data }) => {
     setTimer(0);
     setCompleted(false);
     setIncorrectAnswers([]);
+  };
+
+  const sendProgressData = () => {
+    const token = localStorage.getItem('credentials');
+    const userData = localStorage.getItem('userData');
+    const userName = JSON.parse(userData);
+
+    const progressData = {
+      correctAnswers: correctAnswersCount,
+      incorrectAnswers: incorrectAnswers.length,
+      user: {
+        id: userName?.login?.username,
+      },
+      flashcard: {
+        id: String(data.id),
+        categoryId: String(data.category),
+        languageId: String(data.language),
+        levelId: String(data.level),
+      },
+    };
+
+    fetch('http://localhost:3000/api/userProgresses', {
+      method: 'POST',
+      headers: {
+        Authorization: `${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(progressData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Success:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   };
 
   const currentQuestion = data[currentIndex];
